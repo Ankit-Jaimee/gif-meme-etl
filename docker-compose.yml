@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  scraper:
+    build: .
+    environment:
+      - GIPHY_API_KEY=${GIPHY_API_KEY}
+    volumes:
+      - .:/app
+      - ./jaimee_scraper/images:/app/jaimee_scraper/images
+    working_dir: /app/jaimee_scraper
+    command: scrapy crawl giphy

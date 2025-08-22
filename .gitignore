@@ -41,3 +41,6 @@ logs/
 .idea/
 *.swp
 *.swo
+
+# assets
+jaimee_scraper/images/
