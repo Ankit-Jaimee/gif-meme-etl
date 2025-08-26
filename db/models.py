@@ -6,11 +6,10 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.future import select
-
+from jaimee_scraper.settings import DATABASE_URL
 
 DeclarativeBase = declarative_base()
-
-SQLALCHEMY_DATABASE_URL = "postgresql://ultraapi:ultraapipwd@localhost:5532/ultraapidb"
+SQLALCHEMY_DATABASE_URL = DATABASE_URL
 
 def db_connect():
     return create_engine(SQLALCHEMY_DATABASE_URL)

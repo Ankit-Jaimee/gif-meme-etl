@@ -100,3 +100,5 @@ IMAGES_STORE = "images"
 FEED_EXPORT_ENCODING = "utf-8"
 
 GIPHY_API_KEY = os.environ.get("GIPHY_API_KEY")
+
+DATABASE_URL = os.environ.get("DATABASE_URL")

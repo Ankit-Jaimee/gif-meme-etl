@@ -1,12 +1,44 @@
 version: '3.8'
 
 services:
+  db:
+    image: pgvector/pgvector:pg14
+    restart: always
+    environment:
+      POSTGRES_DB: ultraapidb
+      POSTGRES_USER: ultraapi
+      POSTGRES_PASSWORD: ultraapipwd
+    ports:
+      - "5532:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
   scraper:
     build: .
     environment:
       - GIPHY_API_KEY=${GIPHY_API_KEY}
+      - DATABASE_URL=${DATABASE_URL}
     volumes:
       - .:/app
-      - ./jaimee_scraper/images:/app/jaimee_scraper/images
-    working_dir: /app/jaimee_scraper
+      - ./images:/app/images
+    working_dir: /app
     command: scrapy crawl giphy
+    depends_on:
+      - db
+
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn api:app --host 0.0.0.0 --port 8000
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
