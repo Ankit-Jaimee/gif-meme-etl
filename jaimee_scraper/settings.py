@@ -59,15 +59,17 @@ DEFAULT_REQUEST_HEADERS = {
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
-#EXTENSIONS = {
-#    "scrapy.extensions.telnet.TelnetConsole": None,
-#}
+EXTENSIONS = {
+   "scrapy.extensions.telnet.TelnetConsole": None,
+   "jaimee_scraper.extensions.SaveCrawlStats": 500,
+}
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
    "jaimee_scraper.pipelines.JaimeeScraperPipeline": 1,
    "jaimee_scraper.pipelines.GifPipeline": 1,
+   "jaimee_scraper.pipelines.DatabasePipeline": 500,
 }
 
 FILES_STORE = "images"

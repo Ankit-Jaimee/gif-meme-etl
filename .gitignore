@@ -43,4 +43,4 @@ logs/
 *.swo
 
 # assets
-jaimee_scraper/images/
+images/

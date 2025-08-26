@@ -7,9 +7,9 @@ class GiphySpider(scrapy.Spider):
     name = "giphy"
     start_urls = [
         f"https://api.giphy.com/v1/gifs/trending?api_key={GIPHY_API_KEY}&limit=50&offset=450&rating=pg-13&bundle=clips_grid_picker",
-        f"https://api.giphy.com/v1/gifs/trending?api_key={GIPHY_API_KEY}&limit=50&offset=450&rating=pg-13&bundle=messaging_non_clips_grid_picker",
-        f"https://api.giphy.com/v1/gifs/trending?api_key={GIPHY_API_KEY}&limit=50&offset=450&rating=pg-13&bundle=sticker_layering",
-        f"https://api.giphy.com/v1/gifs/trending?api_key={GIPHY_API_KEY}&limit=50&offset=450&rating=pg-13&bundle=low_bandwidth",
+        # f"https://api.giphy.com/v1/gifs/trending?api_key={GIPHY_API_KEY}&limit=50&offset=450&rating=pg-13&bundle=messaging_non_clips_grid_picker",
+        # f"https://api.giphy.com/v1/gifs/trending?api_key={GIPHY_API_KEY}&limit=50&offset=450&rating=pg-13&bundle=sticker_layering",
+        # f"https://api.giphy.com/v1/gifs/trending?api_key={GIPHY_API_KEY}&limit=50&offset=450&rating=pg-13&bundle=low_bandwidth",
 
     ]
 
@@ -18,6 +18,7 @@ class GiphySpider(scrapy.Spider):
         for item in json_response["data"]:
             image_url = f"https://i.giphy.com/{item['id']}.gif"
             yield {
+                "id": item["id"],
                 "name": item["title"],
                 "slug": item["slug"],
                 "image_urls": [image_url]
