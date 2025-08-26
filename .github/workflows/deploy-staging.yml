@@ -21,7 +21,7 @@ jobs:
       - name: Deploy to Oracle Server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.ORACLE_USER }}@${{ secrets.ORACLE_HOST }} << 'EOF'
-            cd /home/${USER}/staging-app
+            cd /home/${USER}/gif-meme-etl
             git pull origin develop
             docker compose down
             docker compose up -d --build
