@@ -3,7 +3,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, case
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.future import select
 from jaimee_scraper.settings import DATABASE_URL
@@ -52,5 +52,18 @@ class CrawledItem(DeclarativeBase):
     def get_all():
         db = next(get_db())
         gifs = db.execute(select(CrawledItem))
+        return gifs.scalars().all()
+    
+    def get_all_by_slugs(slugs):
+        db = next(get_db())
+        # Create a CASE statement to preserve the order of slugs
+        order = case(
+            {slug: index for index, slug in enumerate(slugs)},
+            value=CrawledItem.slug,
+            else_=len(slugs)
+        )
+        gifs = db.execute(
+            select(CrawledItem).where(CrawledItem.slug.in_(slugs)).order_by(order)
+        )
         return gifs.scalars().all()
 

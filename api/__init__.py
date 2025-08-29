@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from api import gifs
+from api.endpoint import gif
 
 app = FastAPI(
     title="GIF & Meme ETL API",
@@ -10,4 +10,4 @@ app = FastAPI(
 async def index():
     return {"message": "GIF & Meme ETL API is running!"}
 
-app.include_router(gifs.router)
+app.include_router(gif.router)

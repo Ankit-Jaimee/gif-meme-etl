@@ -16,3 +16,8 @@ class CrawledItemsListSchema(BaseModel):
     status: str
     results: int
     data: list[CrawledItemSchema]
+
+class GifSearchSchema(BaseModel):
+    status: str
+    query: str
+    results: list[CrawledItemSchema]

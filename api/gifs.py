@@ -21,3 +21,4 @@ def list_():
     if not crawled_items:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No gifs found")
     return {"status": "200", "results": len(crawled_items), "data": crawled_items}
+
