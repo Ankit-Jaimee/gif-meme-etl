@@ -6,9 +6,19 @@ from langchain_postgres import PGVector
 from langchain_aws import BedrockEmbeddings
 from jaimee_scraper.settings import DATABASE_URL
 from utils import get_embedding
+from sqlalchemy.ext.asyncio import create_async_engine
 
 load_dotenv()
 logger = logging.getLogger(__name__)
+
+engine = create_async_engine(
+    DATABASE_URL.replace("postgresql://", "postgresql+psycopg://"),
+    pool_size=20,           # max open connections
+    max_overflow=10,        # extra connections if pool is full
+    pool_timeout=30,        # wait time before failing
+    pool_recycle=1800,      # recycle connections every 30 min
+    pool_pre_ping=True,     # checks stale connections
+)
 
 class InvalidCollectionError(Exception):
 
@@ -21,10 +31,9 @@ class VectorStore:
   "A class for managing vector store operations and database interaction"
 
   def __init__(self, collection):
-    self.connection = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://")
     self.embedding = BedrockEmbeddings(model_id="amazon.titan-embed-image-v1", region_name="us-east-1")
     self.vec_client = PGVector(collection_name=collection,
-                               connection=self.connection,
+                               connection=engine,
                                embeddings=self.embedding,
                                embedding_length=1024,
                                use_jsonb=True,
@@ -81,7 +90,7 @@ class VectorStore:
     return results
 
   async def delete_collection(self):
-    result = self.vec_client.adelete_collection()
+    result = await self.vec_client.adelete_collection()
     return result
   
   async def search_with_vector(self, query):
@@ -92,16 +101,24 @@ class VectorStore:
     embedding = get_embedding(body)
     result = await self.vec_client.asimilarity_search_by_vector(embedding, k=5)
     return result
+  
+  async def add_embeddings(self, texts, ids, embeddings, metadatas):
+    result = await self.vec_client.aadd_embeddings(
+        texts=texts,
+        ids=ids,
+        embeddings=embeddings,
+        metadatas=metadatas)
+    return result
       
 if __name__ == "__main__":
     async def main():
         vector_store = VectorStore("gif_frames")
-        results = await vector_store.search("NBA", 5)
-        print(f"Found {len(results)} results")
-        print(results)
-        context = "\n\n---\n\n".join([doc[0].page_content for doc in results])
-        print(context)
-        # results = await vector_store.delete_collection()
+        # results = await vector_store.search("NBA", 5)
+        # print(f"Found {len(results)} results")
+        # print(results)
+        # context = "\n\n---\n\n".join([doc[0].page_content for doc in results])
+        # print(context)
+        results = await vector_store.delete_collection()
         # print(f"Deleted collection, result: {results}")
         # result = await vector_store.upsert()
         # print(result)

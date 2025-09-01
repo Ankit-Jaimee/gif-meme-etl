@@ -1,6 +1,9 @@
+import asyncio
 import boto3 
+import functools
 import io
 import json
+import os
 import logging
 from PIL import Image
 
@@ -48,3 +51,21 @@ def extract_frames(gif_bytes, every_n=10, max_frames=5):
     except EOFError:
         logger.info("Reached end of GIF frames.")
     return frames
+
+def get_file_name(request):
+    """Get file name from request.
+    Args:
+        request (Request): The Scrapy Request object.
+    Returns:
+        str: The file name.
+    """
+    slug = request.meta.get("slug", "default")
+    ext = os.path.splitext(request.url)[-1]
+    file_name = f"{slug}{ext}"
+    return file_name
+
+def sync(f):
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+        return asyncio.run(f(*args, **kwargs))
+    return wrapper

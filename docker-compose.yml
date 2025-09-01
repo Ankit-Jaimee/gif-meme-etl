@@ -5,26 +5,22 @@ services:
     image: pgvector/pgvector:pg14
     restart: always
     environment:
-      POSTGRES_DB: ultraapidb
-      POSTGRES_USER: ultraapi
-      POSTGRES_PASSWORD: ultraapipwd
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_HOST_AUTH_METHOD: md5
+      POSTGRES_INITDB_ARGS: --auth=md5
+
     ports:
       - "5532:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  scraper:
-    build: .
-    environment:
-      - GIPHY_API_KEY=${GIPHY_API_KEY}
-      - DATABASE_URL=${DATABASE_URL}
-    volumes:
-      - .:/app
-      - ./images:/app/images
-    working_dir: /app
-    command: scrapy crawl giphy
-    depends_on:
-      - db
+  redis:
+    image: redis:7
+    restart: always
+    ports:
+      - "6379:6379"
 
   fastapi:
     build:
@@ -39,6 +35,35 @@ services:
       - .:/app
     depends_on:
       - db
+
+  celery:
+    build: .
+    command: celery -A tasks worker --loglevel=INFO -E
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=us-east-1
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+
+  scraper:
+    build: .
+    environment:
+      - GIPHY_API_KEY=${GIPHY_API_KEY}
+      - DATABASE_URL=${DATABASE_URL}
+    volumes:
+      - .:/app
+      - ./images:/app/images
+    working_dir: /app
+    command: scrapy crawl giphy
+    depends_on:
+      - db
+      - redis
+      - celery
 
 volumes:
   pgdata:
