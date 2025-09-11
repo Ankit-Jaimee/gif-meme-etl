@@ -1,6 +1,5 @@
 import logging
 import schemas
-from collections.abc import Sequence
 from fastapi import APIRouter, HTTPException
 from db.models import CrawledItem
 from starlette import status
@@ -12,7 +11,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/gifs", tags=["gifs"])
 
 @router.get("",
-    response_model=schemas.CrawledItemsListSchema, 
+    response_model=schemas.CrawledItemsListSchema,
     status_code = status.HTTP_200_OK, 
     summary="Get all gifs"
 )
@@ -25,6 +24,26 @@ def list_():
 
     if not crawled_items:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No gifs found")
+    return {"status": "200", "results": len(crawled_items), "data": crawled_items}
+
+@router.get("/by_labels",
+    response_model=schemas.CrawledItemsListSchema, 
+    status_code = status.HTTP_200_OK, 
+    summary="Get gifs by labels"
+)
+def list_by_labels(labels: str):
+    """Get gifs by labels from the database.
+    Args:
+        labels (Sequence[str]): List of labels to filter gifs.
+    Returns:
+        dict: A dictionary containing the list of gifs matching the labels.
+    """
+    labels = list(labels.split(","))
+    print(labels)
+    crawled_items = CrawledItem.filter_by_labels(labels)
+
+    if not crawled_items:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No gifs found for the given labels")
     return {"status": "200", "results": len(crawled_items), "data": crawled_items}
 
 

@@ -10,6 +10,27 @@ from PIL import Image
 logger = logging.getLogger(__name__)
 
 client = boto3.client('bedrock-runtime', region_name='us-east-1')
+rekognition = boto3.client('rekognition', region_name='us-east-1')
+
+def check_frames_safety(frames):
+    """
+    Check if the frame is safe for processing.
+    """
+    logger.info("Checking frames safety...")
+    for i, frame in enumerate(frames):
+        buf = io.BytesIO()
+        frame.save(buf, format="PNG")
+        frame_bytes = buf.getvalue()
+        response = rekognition.detect_moderation_labels(
+            Image={"Bytes": frame_bytes}
+        )
+        labels = response.get("ModerationLabels", [])
+        if labels:
+            unsafe_labels = [label["Name"] for label in labels]
+            logger.warning(f"Frame {i} contains unsafe content: {unsafe_labels}")
+            return False, unsafe_labels, i
+    logger.info("All frames are safe.")
+    return True, [], -1
 
 def get_embedding(body):
     """Get embedding from Bedrock

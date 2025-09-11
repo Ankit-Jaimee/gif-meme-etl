@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, DateTime, Float
+from sqlalchemy import Column, Integer, String, DateTime, Float, Boolean
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func
 
@@ -47,6 +48,9 @@ class CrawledItem(DeclarativeBase):
     name = Column(String)
     slug = Column(String)
     image_urls = Column(JSONB)
+    is_safe = Column(Boolean, default=True)
+    labels = Column(ARRAY(String), default=[])
+    file_path = Column(String)
     created_dt = Column(DateTime, default=func.now())
 
     def get_all():
@@ -65,5 +69,10 @@ class CrawledItem(DeclarativeBase):
         gifs = db.execute(
             select(CrawledItem).where(CrawledItem.slug.in_(slugs)).order_by(order)
         )
+        return gifs.scalars().all()
+
+    def filter_by_labels(labels):
+        db = next(get_db())
+        gifs = db.execute(select(CrawledItem).where(CrawledItem.labels.contains(labels)))
         return gifs.scalars().all()
 

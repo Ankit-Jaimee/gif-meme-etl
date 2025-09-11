@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from scrapy import Request
 from scrapy.pipelines.files import FilesPipeline
 from sqlalchemy.orm import sessionmaker
-from db.models import db_connect, CrawledItem, create_items_table
+from db.models import db_connect, CrawledItem, Job, create_items_table
 from jaimee_scraper.settings import FILES_STORE
 from tasks import embed_and_store
 from utils import  get_file_name
@@ -74,9 +74,8 @@ class DatabasePipeline:
         engine = db_connect()
         create_items_table(engine)
         self.Session = sessionmaker(bind=engine)
-
-        self.stats.set_value("pipeline/database/processed_items", 0)  # 3
-        self.stats.set_value("pipeline/database/saved_items", 0)  # 4
+        self.stats.set_value("pipeline/database/processed_items", 0)
+        self.stats.set_value("pipeline/database/saved_items", 0)
 
     def process_item(self, item, spider):
         """
@@ -92,6 +91,7 @@ class DatabasePipeline:
             "name": item["name"],
             "slug": item["slug"],
             "image_urls": item["image_urls"],
+            "file_path": os.path.join(FILES_STORE, f"{item['slug']}.gif"),
         }
         if not instance:
             instance = CrawledItem(**filtered_item)
@@ -113,4 +113,5 @@ class DatabasePipeline:
             db.close()
 
     def close_spider(self, spider):
-        self.Session().close()
+        db = self.Session()
+        db.close()

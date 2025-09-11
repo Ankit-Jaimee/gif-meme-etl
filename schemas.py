@@ -6,6 +6,8 @@ class CrawledItemSchema(BaseModel):
     name: str
     slug: str
     image_urls: list[str]
+    is_safe: bool
+    file_path: str
 
     class Config:
         from_attributes = True

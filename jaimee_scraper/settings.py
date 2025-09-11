@@ -71,7 +71,6 @@ ITEM_PIPELINES = {
    "jaimee_scraper.pipelines.GifPipeline": 1,
    "jaimee_scraper.pipelines.DatabasePipeline": 500,
 }
-
 FILES_STORE = "images"
 IMAGES_STORE = "images"
 
@@ -104,3 +103,7 @@ GIPHY_API_KEY = os.environ.get("GIPHY_API_KEY")
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
+
+ADMIN_API_KEY = os.environ.get("ADMIN_API_KEY")
+
+CRAWLERSAVESTATS_ENABLED = True

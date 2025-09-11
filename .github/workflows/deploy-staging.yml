@@ -23,6 +23,6 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.ORACLE_USER }}@${{ secrets.ORACLE_HOST }} << 'EOF'
             cd /home/${USER}/gif-meme-etl
             git pull origin develop
-            docker-compose down
+            docker-compose down -v
             docker-compose up -d --build
           EOF
