@@ -5,7 +5,7 @@ from db.models import CrawledItem
 from starlette import status
 from sqlalchemy.orm import Session
 from vector_store import VectorStore
-
+from fastapi import Query, BackgroundTasks
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/gifs", tags=["gifs"])
@@ -72,3 +72,30 @@ async def search(query: str):
         "query": query,
         "results": crawled_items,
     }
+
+
+@router.post(
+    "/crawl",
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Trigger a Scrapy crawl with a search query"
+)
+def trigger_crawl(
+    query: str = Query(..., description="Search term for Giphy"),
+    background_tasks: BackgroundTasks = None
+):
+    """
+    Trigger a Scrapy crawl for the given search term.
+    """
+    import subprocess
+
+    def run_spider(search_term):
+        subprocess.run(
+            ["scrapy", "crawl", "search_giphy", "-a", f"query={search_term}"]
+        )
+
+    if background_tasks is not None:
+        background_tasks.add_task(run_spider, query)
+    else:
+        run_spider(query)
+
+    return {"status": "started", "search": query}

@@ -6,8 +6,8 @@ from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 class GiphySpider(scrapy.Spider):
     name = "giphy"
     start_urls = [
-        f"https://api.giphy.com/v1/gifs/trending?api_key={GIPHY_API_KEY}&limit=50&offset=470&rating=pg-13&bundle=clips_grid_picker",
-        f"https://api.giphy.com/v1/gifs/trending?api_key={GIPHY_API_KEY}&limit=50&offset=470&rating=r&bundle=clips_grid_picker",
+        f"https://api.giphy.com/v1/gifs/trending?api_key={GIPHY_API_KEY}&limit=50&offset=495&rating=r&bundle=clips_grid_picker",
+        # f"https://api.giphy.com/v1/gifs/trending?api_key={GIPHY_API_KEY}&limit=50&offset=470&rating=r&bundle=clips_grid_picker",
         # f"https://api.giphy.com/v1/gifs/trending?api_key={GIPHY_API_KEY}&limit=50&offset=450&rating=pg-13&bundle=messaging_non_clips_grid_picker",
         # f"https://api.giphy.com/v1/gifs/trending?api_key={GIPHY_API_KEY}&limit=50&offset=450&rating=pg-13&bundle=sticker_layering",
         # f"https://api.giphy.com/v1/gifs/trending?api_key={GIPHY_API_KEY}&limit=50&offset=450&rating=pg-13&bundle=low_bandwidth",

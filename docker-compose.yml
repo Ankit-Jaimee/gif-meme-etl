@@ -79,6 +79,6 @@ services:
       - redis
       - celery_beat
       - celery_worker
-    command: scrapy crawl animated_gif
+    command: scrapy crawl giphy
 volumes:
   pgdata:

@@ -71,8 +71,8 @@ ITEM_PIPELINES = {
    "jaimee_scraper.pipelines.GifPipeline": 1,
    "jaimee_scraper.pipelines.DatabasePipeline": 500,
 }
-FILES_STORE = "images"
-IMAGES_STORE = "images"
+FILES_STORE = os.environ.get("S3BUCKET_URL", "s3://gifs-memes/")
+# IMAGES_STORE = "images"
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html

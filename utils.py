@@ -1,4 +1,5 @@
 import asyncio
+from urllib.parse import urlparse
 import boto3 
 import functools
 import io
@@ -90,3 +91,26 @@ def sync(f):
     def wrapper(*args, **kwargs):
         return asyncio.run(f(*args, **kwargs))
     return wrapper
+
+def get_s3_obj(file_path: str) -> bytes:
+    """Get file bytes from S3 using boto3."""
+    
+    s3 = boto3.client("s3")
+    print(f"Fetching S3 object for path: {file_path}")
+    # file_path is relative, so join with prefix
+    obj = s3.get_object(Bucket="gifs-memes", Key=file_path)
+    # head = s3.head_object(Bucket=bucket, Key=file_path)
+    print(f"Fetched S3 object metadata: {obj['Metadata']}")
+    return obj
+
+def update_s3_metadata(file_path: str, metadata: dict) -> None:
+    """Update S3 object metadata to include safety status."""
+    s3 = boto3.client("s3")
+    copy_source = {"Bucket": "gifs-memes", "Key": file_path}
+    s3.copy_object(
+        Bucket="gifs-memes",
+        Key=file_path,
+        CopySource=copy_source,
+        Metadata=metadata,
+        MetadataDirective="REPLACE"
+    )
