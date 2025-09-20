@@ -53,9 +53,12 @@ class CrawledItem(DeclarativeBase):
     file_path = Column(String)
     created_dt = Column(DateTime, default=func.now())
 
-    def get_all():
+    def get_all(**filters):
         db = next(get_db())
-        gifs = db.execute(select(CrawledItem))
+        query = select(CrawledItem)
+        if filters:
+            query = query.where(CrawledItem.is_safe == filters["is_safe"])
+        gifs = db.execute(query)
         return gifs.scalars().all()
     
     def get_all_by_slugs(slugs):

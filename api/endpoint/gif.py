@@ -6,25 +6,32 @@ from starlette import status
 from sqlalchemy.orm import Session
 from vector_store import VectorStore
 from fastapi import Query, BackgroundTasks
+from api.schemas.gifs import GifListResponse 
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/gifs", tags=["gifs"])
 
 @router.get("",
-    response_model=schemas.CrawledItemsListSchema,
+    response_model=GifListResponse,
     status_code = status.HTTP_200_OK, 
     summary="Get all gifs"
 )
-def list_():
+def get_all_gifs(
+    safe_only: bool = Query(None, description="Filter to only safe gifs")
+):
     """Get all gifs from the database.
     Returns:
         dict: A dictionary containing the list of all gifs.
     """
-    crawled_items = CrawledItem.get_all()
-
-    if not crawled_items:
+    filters = {}
+    if safe_only is not None:
+        filters["is_safe"] = safe_only
+    gifs = CrawledItem.get_all(**filters)
+    if len(gifs) == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No gifs found")
-    return {"status": "200", "results": len(crawled_items), "data": crawled_items}
+    if not gifs:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No gifs found")
+    return {"results": len(gifs), "data": gifs}
 
 @router.get("/by_labels",
     response_model=schemas.CrawledItemsListSchema, 
