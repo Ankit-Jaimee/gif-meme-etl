@@ -91,7 +91,8 @@ class GifPipeline(FilesPipeline):
                 path = file_info['path']
                 if status == 'downloaded':
                     logger.info(f"✅ NEW file uploaded to S3: {path}")
-                    embed_and_store.delay(file_name, item.get("image_urls", [None])[0], meta_info)
+                    file_path = os.path.join(FILES_STORE, file_name)
+                    embed_and_store.delay(file_path, item.get("image_urls", [None])[0], meta_info)
                 elif status == 'uptodate':
                     logger.info(f"🔁 Reused existing file: {path}")
         return item

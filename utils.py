@@ -97,20 +97,34 @@ def get_s3_obj(file_path: str) -> bytes:
     
     s3 = boto3.client("s3")
     print(f"Fetching S3 object for path: {file_path}")
+    bucket, key = parse_s3_url(file_path)
     # file_path is relative, so join with prefix
-    obj = s3.get_object(Bucket="gifs-memes", Key=file_path)
+    obj = s3.get_object(Bucket=bucket, Key=key)
     # head = s3.head_object(Bucket=bucket, Key=file_path)
-    print(f"Fetched S3 object metadata: {obj['Metadata']}")
+    logger.info(f"Fetched S3 object metadata: {obj['Metadata']}")
     return obj
 
 def update_s3_metadata(file_path: str, metadata: dict) -> None:
     """Update S3 object metadata to include safety status."""
     s3 = boto3.client("s3")
-    copy_source = {"Bucket": "gifs-memes", "Key": file_path}
+    bucket, key = parse_s3_url(file_path)
+    copy_source = {"Bucket": bucket, "Key": key}
     s3.copy_object(
-        Bucket="gifs-memes",
-        Key=file_path,
+        Bucket=bucket,
+        Key=key,
         CopySource=copy_source,
         Metadata=metadata,
         MetadataDirective="REPLACE"
     )
+
+def parse_s3_url(s3_url: str) -> tuple:
+    """Parse S3 URL to get bucket and key."""
+    parsed_url = urlparse(s3_url)
+    bucket = parsed_url.netloc
+    key = parsed_url.path.lstrip('/')
+    return bucket, key
+
+if __name__ == "__main__":
+    s3_url = "s3://gifs-memes/images/test.gif"
+    bucket, key = parse_s3_url(s3_url)
+    print(f"Bucket: {bucket}, Key: {key}")

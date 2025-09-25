@@ -4,6 +4,7 @@ import logging
 from dotenv import load_dotenv
 from langchain_postgres import PGVector
 from langchain_aws import BedrockEmbeddings
+from sqlalchemy import text
 from jaimee_scraper.settings import DATABASE_URL
 from utils import get_embedding
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -109,6 +110,42 @@ class VectorStore:
         embeddings=embeddings,
         metadatas=metadatas)
     return result
+
+  async def get_embeddings_by_metadata(self, metadata_filter: dict):
+    """Get embeddings by metadata filter (JSONB match)."""
+    try:
+        async with engine.connect() as conn:
+            query = text("""
+                SELECT * FROM langchain_pg_embedding
+                WHERE cmetadata @> :metadata_filter
+            """)
+            result = await conn.execute(
+                query,
+                {"metadata_filter": json.dumps(metadata_filter)}
+            )
+            rows = result.fetchall()
+            return rows
+    except Exception as e:
+        logger.error(f"Error fetching embeddings by metadata: {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+
+  async def update_metadata(self, embedding_id: str, new_metadata: dict):
+        """Update metadata for a given embedding ID."""
+        try:
+            async with engine.begin() as conn:
+                query = text("""
+                    UPDATE langchain_pg_embedding
+                    SET cmetadata = cmetadata || :new_metadata
+                    WHERE id = :embedding_id
+                """)
+                await conn.execute(query, {
+                    "new_metadata": json.dumps(new_metadata),
+                    "embedding_id": embedding_id
+                })
+        except Exception as e:
+            logger.error(f"Error updating metadata: {e}")
       
 if __name__ == "__main__":
     async def main():
@@ -118,9 +155,16 @@ if __name__ == "__main__":
         # print(results)
         # context = "\n\n---\n\n".join([doc[0].page_content for doc in results])
         # print(context)
-        results = await vector_store.delete_collection()
-        # print(f"Deleted collection, result: {results}")
-        # result = await vector_store.upsert()
-        # print(result)
+        results = await vector_store.get_embeddings_by_metadata({"slug": "spongebob-3oriNPgHFFFR2636la"})
+        print(f"Found {len(results)} results")
+        print(results)
+        # for row in results:
+        #   print(dir(row))
+        #   print(row.id)
+        #   metadata = row.cmetadata or {}
+        #   metadata["disabled"] = True
+        #   await vector_store.update_metadata(row.id, metadata)
+          
+
 
     asyncio.run(main())

@@ -10,7 +10,7 @@ class SearchGiphySpider(scrapy.Spider):
         super().__init__(*args, **kwargs)
         self.query = query
         self.start_urls = [
-            f"https://api.giphy.com/v1/gifs/search?api_key={GIPHY_API_KEY}&q={self.query}&limit=50&offset=0&rating=g&lang=en&bundle=messaging_non_clips"
+            f"https://api.giphy.com/v1/gifs/search?api_key={GIPHY_API_KEY}&q={self.query}&limit=500&offset=0&rating=r&lang=en&bundle=messaging_non_clips"
         ]
 
     def parse(self, response, **kwargs):

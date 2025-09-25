@@ -49,33 +49,43 @@ class CrawledItem(DeclarativeBase):
     slug = Column(String)
     image_urls = Column(JSONB)
     is_safe = Column(Boolean, default=True)
+    disabled = Column(Boolean, default=False)
     labels = Column(ARRAY(String), default=[])
     file_path = Column(String)
     created_dt = Column(DateTime, default=func.now())
 
-    def get_all(**filters):
-        db = next(get_db())
-        query = select(CrawledItem)
-        if filters:
-            query = query.where(CrawledItem.is_safe == filters["is_safe"])
+    @classmethod
+    def get_all(cls, db, **filters):
+        query = select(cls)
+        if "is_safe" in filters:
+            query = query.where(cls.is_safe == filters["is_safe"])
         gifs = db.execute(query)
         return gifs.scalars().all()
     
-    def get_all_by_slugs(slugs):
-        db = next(get_db())
-        # Create a CASE statement to preserve the order of slugs
+    @classmethod
+    def get_all_by_slugs(cls, db, slugs):
         order = case(
             {slug: index for index, slug in enumerate(slugs)},
-            value=CrawledItem.slug,
+            value=cls.slug,
             else_=len(slugs)
         )
         gifs = db.execute(
-            select(CrawledItem).where(CrawledItem.slug.in_(slugs)).order_by(order)
+            select(cls).where(cls.slug.in_(slugs)).order_by(order)
         )
         return gifs.scalars().all()
 
-    def filter_by_labels(labels):
-        db = next(get_db())
-        gifs = db.execute(select(CrawledItem).where(CrawledItem.labels.contains(labels)))
+    @classmethod
+    def get_by_slug(cls, db, slug):
+        gif = db.execute(select(cls).where(cls.slug == slug)).scalar()
+        return gif
+
+    @classmethod
+    def filter_by_labels(cls, db, labels):
+        gifs = db.execute(select(cls).where(cls.labels.contains(labels)))
         return gifs.scalars().all()
 
+    def save(self, db):
+        db.add(self)
+        db.commit()
+        db.refresh(self)
+        return self
