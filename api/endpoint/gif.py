@@ -134,7 +134,7 @@ async def disable_gif(
         db (Session): The database session.
     """
     if id is not None:
-        gif = CrawledItem.get_by_id(id)
+        gif = CrawledItem.get_by_id(db, id)
     elif slug is not None:
         gif = CrawledItem.get_by_slug(db, slug)
     else:
