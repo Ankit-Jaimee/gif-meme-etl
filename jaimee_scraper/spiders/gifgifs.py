@@ -2,8 +2,7 @@
 import scrapy
 import base64
 import hashlib
-from jaimee_scraper.settings import GIPHY_API_KEY
-from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+from urllib.parse import urlparse
 
 def short_hash(url):
     digest = hashlib.sha256(url.encode()).digest()
