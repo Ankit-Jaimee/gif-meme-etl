@@ -8,6 +8,7 @@ class GifResponse(BaseModel):
     image_urls: list[str]
     is_safe: bool
     file_path: str
+    disabled: bool
 
     class Config:
         from_attributes = True

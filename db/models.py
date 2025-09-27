@@ -80,6 +80,11 @@ class CrawledItem(DeclarativeBase):
         return gif
 
     @classmethod
+    def get_by_id(cls, db, id):
+        gif = db.execute(select(cls).where(cls.id == id)).scalar()
+        return gif
+
+    @classmethod
     def filter_by_labels(cls, db, labels):
         gifs = db.execute(select(cls).where(cls.labels.contains(labels)))
         return gifs.scalars().all()

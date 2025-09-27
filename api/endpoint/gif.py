@@ -124,7 +124,7 @@ def trigger_crawl(
     summary="Disable a GIF and its embeddings by id, slug, or filename"
 )
 async def disable_gif(
-    id: int = Query(None, description="GIF ID"),
+    id: str = Query(None, description="GIF ID"),
     slug: str = Query(None, description="GIF slug"),
     db: Session = Depends(get_db)
 ):
