@@ -92,6 +92,9 @@ class GifPipeline(FilesPipeline):
                 if status == 'downloaded':
                     logger.info(f"✅ NEW file uploaded to S3: {path}")
                     file_path = os.path.join(FILES_STORE, file_name)
+                    # increment saved_items here
+                    if hasattr(info.spider, 'crawler') and hasattr(info.spider.crawler, 'stats'):
+                        info.spider.crawler.stats.inc_value("pipeline/files/saved_items") 
                     embed_and_store.delay(file_path, item.get("image_urls", [None])[0], meta_info)
                 elif status == 'uptodate':
                     logger.info(f"🔁 Reused existing file: {path}")
@@ -115,7 +118,6 @@ class DatabasePipeline:
         create_items_table(engine)
         self.Session = sessionmaker(bind=engine)
         self.stats.set_value("pipeline/database/processed_items", 0)
-        self.stats.set_value("pipeline/database/saved_items", 0)
 
     def process_item(self, item, spider):
         """
@@ -139,17 +141,15 @@ class DatabasePipeline:
         else:
             for key, value in filtered_item.items():
                 setattr(instance, key, value)
-
         try:
             db.commit()
-            self.stats.inc_value("pipeline/database/saved_items")  # 5
             return item
         except Exception as error:
             print(error)
             db.rollback()
             raise
         finally:
-            self.stats.inc_value("pipeline/database/processed_items")  # 6
+            self.stats.inc_value("pipeline/database/processed_items")
             db.close()
 
     def close_spider(self, spider):

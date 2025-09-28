@@ -34,7 +34,7 @@ class SaveCrawlStats:
 
         name = spider.name
         processed_items = stats.get("pipeline/database/processed_items", 0)
-        saved_items = stats.get("pipeline/database/saved_items", 0)
+        saved_items = stats.get("pipeline/files/saved_items", 0)
 
         start_time = stats.get("start_time")
         finish_time = stats.get("finish_time")
