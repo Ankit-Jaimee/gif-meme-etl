@@ -143,20 +143,23 @@ async def disable_gif(
     if not gif:
         raise HTTPException(status_code=404, detail="GIF not found.")
     
-    gif.disabled = True
-    gif.save(db)  # Make sure your model has a save() method or use your ORM's session commit
-    
-    # Update all related embeddings
-    vector_store = VectorStore("gif_frames")
-    # Assuming your embeddings have metadata with 'slug' or 'gif_id'
-    filter_metadata = {"slug": gif.slug}  # or {"gif_id": gif.id} if that's how you store it
-    embeddings = await vector_store.get_embeddings_by_metadata(filter_metadata)
-    updated = 0
-    for embedding in embeddings:
-        metadata = embedding.cmetadata or {}
-        metadata["disabled"] = True
-        await vector_store.update_metadata(embedding.id, metadata)
-        updated += 1
+    try:
+        gif.disabled = True
+        gif.save(db)  
+        
+        # Update all related embeddings
+        vector_store = VectorStore("gif_frames")
+        filter_metadata = {"slug": gif.slug}  
+        embeddings = await vector_store.get_embeddings_by_metadata(filter_metadata)
+        updated = 0
+        for embedding in embeddings:
+            metadata = embedding.cmetadata or {}
+            metadata["disabled"] = True
+            await vector_store.update_metadata(embedding.id, metadata)
+            updated += 1
+    except Exception as e:
+        logger.error(f"Failed to disable GIF or update embeddings: {e}")
+        raise HTTPException(status_code=500, detail="Failed to disable GIF or update embeddings.")
     try:
         s3_obj = get_s3_obj(gif.file_path)
         print(s3_obj["Metadata"])
