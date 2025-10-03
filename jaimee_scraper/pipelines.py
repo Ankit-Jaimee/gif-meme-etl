@@ -127,7 +127,7 @@ class DatabasePipeline:
             "name": item["name"],
             "slug": item["slug"],
             "image_urls": item["image_urls"],
-            "file_path": os.path.join(FILES_STORE, f"{item['slug']}.gif"),
+            "file_path": os.path.join(FILES_STORE, item.get("files")[0].get("path", "")),
         }
         if not instance:
             instance = CrawledItem(**filtered_item)
@@ -139,7 +139,7 @@ class DatabasePipeline:
             db.commit()
             return item
         except Exception as error:
-            print(error)
+            logger.error(f"Database error: {error}")
             db.rollback()
             raise
         finally:
