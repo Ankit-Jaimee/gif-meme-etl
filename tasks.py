@@ -1,10 +1,12 @@
 import boto3
 import logging
-import io, base64, json
+import io, os, base64, json
+
 from jaimee_scraper.settings import CELERY_BROKER_URL
 from utils import extract_frames, get_embedding, sync, check_frames_safety, get_s3_obj, update_s3_metadata
 from vector_store import VectorStore
 from db.models import get_db, CrawledItem
+from jaimee_scraper.settings import FILES_STORE
 import subprocess
 
 logger = logging.getLogger(__name__)
@@ -14,10 +16,12 @@ celery_app = Celery("gif_worker", broker=CELERY_BROKER_URL)
 
 @celery_app.task(autoretry_for=(Exception,), retry_backoff=True, retry_backoff_max=60, max_retries=5)
 @sync
-async def embed_and_store(file_path, source_url, meta_info):
-    slug = meta_info.get("slug")
+async def embed_and_store(item):
+    name = item.get("name", "default")
+    slug = item.get("slug")
     vec_client  = VectorStore("gif_frames")
     logger.info(f"Embedding and storing frames for slug: {slug}")
+    file_path = os.path.join(FILES_STORE, item.get("files", [{}])[0].get("path", ""))
     # with open(file_path, "rb") as f:
     #     gif_bytes = f.read()
     try:
@@ -35,11 +39,11 @@ async def embed_and_store(file_path, source_url, meta_info):
         db = next(get_db())
         try:
             s3_metadata["is_safe"] = "false"
-            item = db.query(CrawledItem).filter(CrawledItem.slug == slug).first()
-            if item:
-                item.is_safe = is_safe
-                item_labels = item.labels or []
-                item.labels = list(set(item_labels + labels))
+            gif = db.query(CrawledItem).filter(CrawledItem.slug == slug).first()
+            if gif:
+                gif.is_safe = is_safe
+                gif_labels = gif.labels or []
+                gif.labels = list(set(gif_labels + labels))
                 db.commit()
         except Exception as e:
             logger.error(f"Failed to update safety status for {slug}: {e}")
@@ -66,13 +70,13 @@ async def embed_and_store(file_path, source_url, meta_info):
 
         metadata = {
             "gif_id": slug,
-            "title": meta_info.get("title"),
+            "name": name,
             "slug": slug,
             "frame_index": i,
-            "source_url": source_url,
+            "source_url": item.get("image_urls")[0],
             "file_path": file_path,
         }
-        frame_texts.append(meta_info.get("title") + f" ;frame : {i}")
+        frame_texts.append(str(name) + f" ;frame : {i}")
         frame_ids.append(frame_id)
         vectors.append(vector)
         metadatas.append(metadata)

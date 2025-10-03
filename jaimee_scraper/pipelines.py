@@ -78,11 +78,6 @@ class GifPipeline(FilesPipeline):
         
     def item_completed(self, results, item, info):
         item = super().item_completed(results, item, info)
-        file_name = results[0][1].get("path")
-        meta_info = {
-            "slug": item.get("slug", "default"),
-            "title": item.get("name", "default"),
-        }
         for ok, file_info in results:
             logger.info(f"Processing result - ok: {ok}, file_info: {file_info}")
             if ok:
@@ -91,11 +86,10 @@ class GifPipeline(FilesPipeline):
                 path = file_info['path']
                 if status == 'downloaded':
                     logger.info(f"✅ NEW file uploaded to S3: {path}")
-                    file_path = os.path.join(FILES_STORE, file_name)
                     # increment saved_items here
                     if hasattr(info.spider, 'crawler') and hasattr(info.spider.crawler, 'stats'):
-                        info.spider.crawler.stats.inc_value("pipeline/files/saved_items") 
-                    embed_and_store.delay(file_path, item.get("image_urls", [None])[0], meta_info)
+                        info.spider.crawler.stats.inc_value("pipeline/files/saved_items")  
+                    embed_and_store.delay(item)
                 elif status == 'uptodate':
                     logger.info(f"🔁 Reused existing file: {path}")
         return item
