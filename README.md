@@ -31,7 +31,8 @@ pip install -r requirements.txt
 ```
 4. Create a `.env` file in the root directory and add the following variables:
 ```bash
-GIPHY_API_KEY=your_giphy_api_key
+GIPHY_API_KEY = <your_giphy_api_key>
+DATABASE_URL = <your database url>
 ```
 
 ## 🐳 Docker Setup

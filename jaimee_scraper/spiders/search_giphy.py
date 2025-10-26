@@ -1,23 +1,24 @@
 import scrapy
+
 from jaimee_scraper.settings import GIPHY_API_KEY
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
+class SearchGiphySpider(scrapy.Spider):
+    name = "search_giphy"
+    
+    def __init__(self, query="funny", *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.query = query
+        self.start_urls = [
+            f"https://api.giphy.com/v1/gifs/search?api_key={GIPHY_API_KEY}&q={self.query}&limit=500&offset=0&rating=r&lang=en&bundle=messaging_non_clips"
+        ]
 
-class GiphySpider(scrapy.Spider):
-    name = "giphy"
-    start_urls = [
-        f"https://api.giphy.com/v1/gifs/trending?api_key={GIPHY_API_KEY}&limit=50&offset=450&rating=pg-13&bundle=clips_grid_picker",
-        f"https://api.giphy.com/v1/gifs/trending?api_key={GIPHY_API_KEY}&limit=50&offset=450&rating=pg-13&bundle=messaging_non_clips_grid_picker",
-        f"https://api.giphy.com/v1/gifs/trending?api_key={GIPHY_API_KEY}&limit=50&offset=450&rating=pg-13&bundle=sticker_layering",
-        f"https://api.giphy.com/v1/gifs/trending?api_key={GIPHY_API_KEY}&limit=50&offset=450&rating=pg-13&bundle=low_bandwidth",
-
-    ]
-
-    def parse(self, response):
+    def parse(self, response, **kwargs):
         json_response = response.json()
         for item in json_response["data"]:
             image_url = f"https://i.giphy.com/{item['id']}.gif"
             yield {
+                "id": item["id"],
                 "name": item["title"],
                 "slug": item["slug"],
                 "image_urls": [image_url]
@@ -33,4 +34,3 @@ class GiphySpider(scrapy.Spider):
         url_parts[4] = urlencode(query, doseq=True)
         next_page = urlunparse(url_parts)
         yield response.follow(next_page, callback=self.parse)
-
